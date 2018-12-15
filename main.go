@@ -50,7 +50,7 @@ func main() {
 
 	// Default values
 	config := Config{
-		StoragePath:   filepath.Join(os.Getenv("HOME"), ".homecontrol"),
+		StoragePath:   filepath.Join(os.Getenv("HOME"), ".homecontrol", "myq"),
 		Brand:         "liftmaster",
 		AccessoryName: "Garage Door",
 		HomekitPIN:    "00102003",
