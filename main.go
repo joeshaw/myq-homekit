@@ -191,8 +191,17 @@ func main() {
 		t := time.NewTicker(15 * time.Minute)
 		defer t.Stop()
 
-		if _, err := updateCurrentState(); err != nil {
+		state, err := updateCurrentState()
+		if err != nil {
 			log.Printf("Error fetching current state: %v", err)
+		}
+
+		// Set initial target door state
+		switch state {
+		case myq.StateOpen, myq.StateOpening:
+			svc.TargetDoorState.Int.SetValue(characteristic.TargetDoorStateOpen)
+		case myq.StateClosed, myq.StateClosing:
+			svc.TargetDoorState.Int.SetValue(characteristic.TargetDoorStateClosed)
 		}
 
 		for {
