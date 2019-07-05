@@ -159,10 +159,12 @@ func main() {
 		// status loop.  It has to run in a goroutine because
 		// this update function can't block.
 		go func() {
+			start := time.Now()
 			deadline := time.Now().Add(60 * time.Second)
 			for time.Now().Before(deadline) {
 				state, _ := updateCurrentState()
 				if state == desiredState {
+					log.Printf("Door reached target state (%s) after %v", desiredState, time.Since(start))
 					break
 				}
 				time.Sleep(5 * time.Second)
@@ -205,13 +207,29 @@ func main() {
 		}
 
 		for {
+			var ch <-chan time.Time
+
+			updateState := func() {
+				state, err := updateCurrentState()
+				if err != nil {
+					log.Printf("Error fetching current state: %v", err)
+				}
+				// If the door is in a transitional state, check much more
+				// often.
+				if state == myq.StateOpening || state == myq.StateClosing {
+					ch = time.After(5 * time.Second)
+				} else {
+					ch = nil
+				}
+			}
+
 			select {
 			case <-ctx.Done():
 				return
 			case <-t.C:
-				if _, err := updateCurrentState(); err != nil {
-					log.Printf("Error fetching current state: %v", err)
-				}
+				updateState()
+			case <-ch:
+				updateState()
 			}
 		}
 
