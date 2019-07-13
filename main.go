@@ -121,16 +121,21 @@ func main() {
 		}
 
 		i := svc.CurrentDoorState.Int
+		t := svc.TargetDoorState.Int
 
 		switch state {
 		case myq.StateOpen:
 			i.SetValue(characteristic.CurrentDoorStateOpen)
+			t.SetValue(characteristic.TargetDoorStateOpen)
 		case myq.StateClosed:
 			i.SetValue(characteristic.CurrentDoorStateClosed)
+			t.SetValue(characteristic.TargetDoorStateClosed)
 		case myq.StateOpening:
 			i.SetValue(characteristic.CurrentDoorStateOpening)
+			t.SetValue(characteristic.TargetDoorStateOpen)
 		case myq.StateClosing:
 			i.SetValue(characteristic.CurrentDoorStateClosing)
+			t.SetValue(characteristic.TargetDoorStateClosed)
 		case myq.StateStopped:
 			i.SetValue(characteristic.CurrentDoorStateStopped)
 		}
