@@ -3,7 +3,9 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +19,33 @@ import (
 
 	"github.com/joeshaw/myq"
 )
+
+type duration time.Duration
+
+func (d duration) MarshalJSON() ([]byte, error) {
+	return json.Marshal(fmt.Sprintf("%s", time.Duration(d)))
+}
+
+func (d *duration) UnmarshalJSON(b []byte) error {
+	var v interface{}
+	if err := json.Unmarshal(b, &v); err != nil {
+		return err
+	}
+	switch value := v.(type) {
+	case float64:
+		*d = duration(time.Duration(value))
+		return nil
+	case string:
+		tmp, err := time.ParseDuration(value)
+		if err != nil {
+			return err
+		}
+		*d = duration(tmp)
+		return nil
+	default:
+		return errors.New("invalid duration")
+	}
+}
 
 type Config struct {
 	// Storage path for information about the HomeKit accessory.
@@ -40,6 +69,9 @@ type Config struct {
 
 	// HomeKit PIN.  Defaults to 00102003.
 	HomekitPIN string `json:"homekit_pin"`
+
+	// Update interval.  Defaults to 5m
+	UpdateInterval duration `json:"update_interval"`
 }
 
 func main() {
@@ -50,10 +82,11 @@ func main() {
 
 	// Default values
 	config := Config{
-		StoragePath:   filepath.Join(os.Getenv("HOME"), ".homecontrol", "myq"),
-		Brand:         "liftmaster",
-		AccessoryName: "Garage Door",
-		HomekitPIN:    "00102003",
+		StoragePath:    filepath.Join(os.Getenv("HOME"), ".homecontrol", "myq"),
+		Brand:          "liftmaster",
+		AccessoryName:  "Garage Door",
+		HomekitPIN:     "00102003",
+		UpdateInterval: duration(5 * time.Minute),
 	}
 
 	f, err := os.Open(configFile)
@@ -195,39 +228,29 @@ func main() {
 		log.Println("Entering garage door state update loop")
 		defer log.Println("Exiting garage door state update loop")
 
-		t := time.NewTicker(15 * time.Minute)
+		t := time.NewTicker(time.Duration(config.UpdateInterval))
 		defer t.Stop()
 
-		state, err := updateCurrentState()
-		if err != nil {
-			log.Printf("Error fetching current state: %v", err)
+		var ch <-chan time.Time
+
+		updateState := func() {
+			state, err := updateCurrentState()
+			if err != nil {
+				log.Printf("Error fetching current state: %v", err)
+			}
+			// If the door is in a transitional state, check much more
+			// often.
+			if state == myq.StateOpening || state == myq.StateClosing {
+				ch = time.After(5 * time.Second)
+			} else {
+				ch = nil
+			}
 		}
 
-		// Set initial target door state
-		switch state {
-		case myq.StateOpen, myq.StateOpening:
-			svc.TargetDoorState.Int.SetValue(characteristic.TargetDoorStateOpen)
-		case myq.StateClosed, myq.StateClosing:
-			svc.TargetDoorState.Int.SetValue(characteristic.TargetDoorStateClosed)
-		}
+		// Set initial state
+		updateState()
 
 		for {
-			var ch <-chan time.Time
-
-			updateState := func() {
-				state, err := updateCurrentState()
-				if err != nil {
-					log.Printf("Error fetching current state: %v", err)
-				}
-				// If the door is in a transitional state, check much more
-				// often.
-				if state == myq.StateOpening || state == myq.StateClosing {
-					ch = time.After(5 * time.Second)
-				} else {
-					ch = nil
-				}
-			}
-
 			select {
 			case <-ctx.Done():
 				return
