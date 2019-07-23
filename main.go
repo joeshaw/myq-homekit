@@ -195,17 +195,19 @@ func main() {
 
 		// Update the current state more often than the normal
 		// status loop.  It has to run in a goroutine because
-		// this update function can't block.
+		// this update function can't block.  There's an initial
+		// delay because the API will often report back the old
+		// state, not the state we're moving to.
 		go func() {
 			start := time.Now()
 			deadline := time.Now().Add(60 * time.Second)
 			for time.Now().Before(deadline) {
+				time.Sleep(5 * time.Second)
 				state, _ := updateCurrentState()
 				if state == desiredState {
 					log.Printf("Door reached target state (%s) after %v", desiredState, time.Since(start))
 					break
 				}
-				time.Sleep(5 * time.Second)
 			}
 		}()
 	})
