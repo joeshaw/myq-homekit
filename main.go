@@ -61,8 +61,8 @@ type Config struct {
 	// MyQ brand.  Defaults to "liftmaster"
 	Brand string `json:"brand"`
 
-	// MyQ device ID
-	DeviceID string `json:"device_id"`
+	// MyQ device serial number
+	SerialNumber string `json:"serial_number"`
 
 	// Accessory name.  Defaults to "Garage Door"
 	AccessoryName string `json:"accessory_name"`
@@ -126,20 +126,19 @@ func main() {
 
 	var device myq.Device
 	for _, d := range devices {
-		if d.DeviceID == config.DeviceID {
+		if d.SerialNumber == config.SerialNumber {
 			device = d
 			break
 		}
 	}
 
-	if device.DeviceID == "" {
-		log.Fatalf("couldn't find device ID %q", config.DeviceID)
+	if device.SerialNumber == "" {
+		log.Fatalf("couldn't find device %q", config.SerialNumber)
 	}
 
 	info := accessory.Info{
 		Name:         config.AccessoryName,
 		Manufacturer: config.Brand,
-		Model:        device.Desc,
 		SerialNumber: device.SerialNumber,
 	}
 
@@ -148,7 +147,7 @@ func main() {
 	acc.AddService(svc.Service)
 
 	updateCurrentState := func() (string, error) {
-		state, err := s.DeviceState(device.DeviceID)
+		state, err := s.DeviceState(device.SerialNumber)
 		if err != nil {
 			return "", err
 		}
@@ -179,16 +178,18 @@ func main() {
 	}
 
 	svc.TargetDoorState.OnValueRemoteUpdate(func(st int) {
-		var desiredState string
+		var action, desiredState string
 		switch st {
 		case characteristic.TargetDoorStateOpen:
+			action = myq.ActionOpen
 			desiredState = myq.StateOpen
 		case characteristic.TargetDoorStateClosed:
+			action = myq.ActionClose
 			desiredState = myq.StateClosed
 		}
 
-		log.Printf("Setting garage door to %s", desiredState)
-		if err := s.SetDeviceState(device.DeviceID, desiredState); err != nil {
+		log.Printf("Setting garage door to %s", action)
+		if err := s.SetDoorState(device.SerialNumber, action); err != nil {
 			log.Printf("Unable to set garage door state: %v", err)
 			return
 		}
