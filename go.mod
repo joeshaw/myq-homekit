@@ -1,4 +1,4 @@
-module github.com/joeshaw/myq-homecontrol
+module github.com/joeshaw/myq-homekit
 
 go 1.12
 

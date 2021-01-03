@@ -1,7 +1,7 @@
-# myq-homecontrol
+# myq-homekit
 
 HomeKit support for Chamberlain / LiftMaster MyQ garage doors using
-[HomeControl](https://github.com/brutella/hc) and my [MyQ Go
+[hc](https://github.com/brutella/hc) and my [MyQ Go
 library](https://github.com/joeshaw/myq).
 
 When running, this service publishes a HomeKit garage door accessory.
@@ -15,7 +15,7 @@ TV or iPad, you can control the garage door remotely.
 
 The tool can be installed with:
 
-    go get -u github.com/joeshaw/myq-homecontrol
+    go get -u github.com/joeshaw/myq-homekit
 
 You will need to create a `config.json` file with your MyQ username
 and password, and your MyQ device ID
@@ -35,7 +35,7 @@ repo](https://github.com/joeshaw/myq) by running:
 
 Then you can run the service:
 
-    myq-homecontrol -config config.json
+    myq-homekit -config config.json
 
 The service will call the MyQ API to get the current garage door
 state, and update it every 15 minutes.
@@ -55,7 +55,7 @@ sure the code has been run through `gofmt`.
 
 Copyright 2018 Joe Shaw
 
-`myq-homecontrol` is licensed under the MIT License.  See the LICENSE file
+`myq-homekit` is licensed under the MIT License.  See the LICENSE file
 for details.
 
 
