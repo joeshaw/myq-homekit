@@ -10,6 +10,8 @@ github.com/joeshaw/myq v0.0.0-20190604014436-e399c9c85d42 h1:bGZHHoD0SgmhbtReezA
 github.com/joeshaw/myq v0.0.0-20190604014436-e399c9c85d42/go.mod h1:JIAYL8MTdEJ0sgxPBl+azpz9Pt50q5P4FGV3U2JeYBE=
 github.com/joeshaw/myq v0.0.0-20200703030948-4452f2e0f5a2 h1:t0CJS/1nMCaovnYFoM+Ifr/Z4n01NHR8uTgYsoIABEc=
 github.com/joeshaw/myq v0.0.0-20200703030948-4452f2e0f5a2/go.mod h1:JIAYL8MTdEJ0sgxPBl+azpz9Pt50q5P4FGV3U2JeYBE=
+github.com/joeshaw/myq v0.0.0-20210716142209-87e31ab22cb4 h1:yKXYjcgN+iuCIzpJocxiD9TvmVZ+QxwNFc1SEcYPo6E=
+github.com/joeshaw/myq v0.0.0-20210716142209-87e31ab22cb4/go.mod h1:JIAYL8MTdEJ0sgxPBl+azpz9Pt50q5P4FGV3U2JeYBE=
 github.com/miekg/dns v1.1.1/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
 github.com/miekg/dns v1.1.4 h1:rCMZsU2ScVSYcAsOXgmC6+AKOK+6pmQTOcw03nfwYV0=
 github.com/miekg/dns v1.1.4/go.mod h1:W1PPwlIAgtquWBMBEV9nkV9Cazfe8ScdGz/Lj7v3Nrg=
