@@ -58,9 +58,6 @@ type Config struct {
 	// MyQ password
 	Password string `json:"password"`
 
-	// MyQ brand.  Defaults to "liftmaster"
-	Brand string `json:"brand"`
-
 	// MyQ device serial number
 	SerialNumber string `json:"serial_number"`
 
@@ -83,7 +80,6 @@ func main() {
 	// Default values
 	config := Config{
 		StoragePath:    filepath.Join(os.Getenv("HOME"), ".homecontrol", "myq"),
-		Brand:          "liftmaster",
 		AccessoryName:  "Garage Door",
 		HomekitPIN:     "00102003",
 		UpdateInterval: duration(5 * time.Minute),
@@ -110,7 +106,6 @@ func main() {
 	s := &myq.Session{
 		Username: config.Username,
 		Password: config.Password,
-		Brand:    config.Brand,
 	}
 
 	log.Println("Connecting to MyQ service")
@@ -138,7 +133,6 @@ func main() {
 
 	info := accessory.Info{
 		Name:         config.AccessoryName,
-		Manufacturer: config.Brand,
 		SerialNumber: device.SerialNumber,
 	}
 
@@ -263,7 +257,6 @@ func main() {
 				updateState()
 			}
 		}
-
 	}()
 
 	log.Println("Starting transport...")
