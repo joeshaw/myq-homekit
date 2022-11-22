@@ -82,7 +82,7 @@ func main() {
 		StoragePath:    filepath.Join(os.Getenv("HOME"), ".homecontrol", "myq"),
 		AccessoryName:  "Garage Door",
 		HomekitPIN:     "00102003",
-		UpdateInterval: duration(5 * time.Minute),
+		UpdateInterval: duration(1 * time.Minute),
 	}
 
 	f, err := os.Open(configFile)
@@ -147,21 +147,12 @@ func main() {
 		}
 
 		i := svc.CurrentDoorState.Int
-		t := svc.TargetDoorState.Int
 
 		switch state {
 		case myq.StateOpen:
 			i.SetValue(characteristic.CurrentDoorStateOpen)
-			t.SetValue(characteristic.TargetDoorStateOpen)
 		case myq.StateClosed:
 			i.SetValue(characteristic.CurrentDoorStateClosed)
-			t.SetValue(characteristic.TargetDoorStateClosed)
-		case myq.StateOpening:
-			i.SetValue(characteristic.CurrentDoorStateOpening)
-			t.SetValue(characteristic.TargetDoorStateOpen)
-		case myq.StateClosing:
-			i.SetValue(characteristic.CurrentDoorStateClosing)
-			t.SetValue(characteristic.TargetDoorStateClosed)
 		case myq.StateStopped:
 			i.SetValue(characteristic.CurrentDoorStateStopped)
 		}
@@ -170,6 +161,18 @@ func main() {
 
 		return state, nil
 	}
+
+	setTargetState := func(state string) {
+		t := svc.TargetDoorState.Int
+		switch state {
+		case myq.StateOpen:
+			t.SetValue(characteristic.TargetDoorStateOpen)
+		case myq.StateClosed:
+			t.SetValue(characteristic.TargetDoorStateClosed)
+		}
+	}
+
+	desiredCh := make(chan string, 1)
 
 	svc.TargetDoorState.OnValueRemoteUpdate(func(st int) {
 		var action, desiredState string
@@ -188,23 +191,7 @@ func main() {
 			return
 		}
 
-		// Update the current state more often than the normal
-		// status loop.  It has to run in a goroutine because
-		// this update function can't block.  There's an initial
-		// delay because the API will often report back the old
-		// state, not the state we're moving to.
-		go func() {
-			start := time.Now()
-			deadline := time.Now().Add(60 * time.Second)
-			for time.Now().Before(deadline) {
-				time.Sleep(5 * time.Second)
-				state, _ := updateCurrentState()
-				if state == desiredState {
-					log.Printf("Door reached target state (%s) after %v", desiredState, time.Since(start))
-					break
-				}
-			}
-		}()
+		desiredCh <- desiredState
 	})
 
 	hcConfig := hc.Config{
@@ -228,33 +215,37 @@ func main() {
 		t := time.NewTicker(time.Duration(config.UpdateInterval))
 		defer t.Stop()
 
-		var ch <-chan time.Time
-
-		updateState := func() {
+		updateAndResetTarget := func() {
 			state, err := updateCurrentState()
 			if err != nil {
-				log.Printf("Error fetching current state: %v", err)
+				log.Printf("Unable to update current state: %v", err)
+				return
 			}
-			// If the door is in a transitional state, check much more
-			// often.
-			if state == myq.StateOpening || state == myq.StateClosing {
-				ch = time.After(5 * time.Second)
-			} else {
-				ch = nil
-			}
+			setTargetState(state)
 		}
 
 		// Set initial state
-		updateState()
+		updateAndResetTarget()
 
 		for {
 			select {
 			case <-ctx.Done():
 				return
 			case <-t.C:
-				updateState()
-			case <-ch:
-				updateState()
+				updateAndResetTarget()
+			case desiredState := <-desiredCh:
+				// On a state change, update more often than normal
+				start := time.Now()
+				deadline := start.Add(90 * time.Second)
+				for time.Now().Before(deadline) {
+					time.Sleep(5 * time.Second)
+					state, _ := updateCurrentState()
+					if state == desiredState {
+						setTargetState(state)
+						log.Printf("Door reached target state (%s) after %v", desiredState, time.Since(start))
+						break
+					}
+				}
 			}
 		}
 	}()
