@@ -14,6 +14,6 @@ require (
 	github.com/miekg/dns v1.1.4 // indirect
 	github.com/tadglines/go-pkgs v0.0.0-20140924210655-1f86682992f1 // indirect
 	golang.org/x/crypto v0.0.0-20181203042331-505ab145d0a9 // indirect
-	golang.org/x/net v0.0.0-20211216030914-fe4d6282115f // indirect
-	golang.org/x/sys v0.0.0-20210423082822-04245dca01da // indirect
+	golang.org/x/net v0.7.0 // indirect
+	golang.org/x/sys v0.5.0 // indirect
 )
