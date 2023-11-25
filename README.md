@@ -1,5 +1,7 @@
 # myq-homekit
 
+**This project is now archived, see [Status](#status) below.**
+
 HomeKit support for Chamberlain / LiftMaster MyQ garage doors using
 [hc](https://github.com/brutella/hc) and my [MyQ Go
 library](https://github.com/joeshaw/myq).
@@ -46,14 +48,17 @@ see the garage door under "Nearby Accessories."  Tap that and enter
 the PIN 00102003 (or whatever you chose in `config.json`).  You should
 see a garage door appear in your device list.
 
-## Contributing
+## Status
 
-Issues and pull requests are welcome.  When filing a PR, please make
-sure the code has been run through `gofmt`.
+In October and November 2023, MyQ made their API much harder to access by third parties.  See [this article on The Verge](https://www.theverge.com/23949612/chamberlain-myq-smart-garage-door-controller-homebridge-integrations) for more details.
+
+I've replaced my MyQ Wifi module with a [Ratgdo](https://paulwieland.github.io/ratgdo/), which I strongly recommend.  As a result, I am no longer maintaining this project.
+
+For HomeKit integration, I am using the Ratgdo's MQTT support with [Home Assistant](https://www.home-assistant.io/), then using its HomeKit integration to expose the garage door to HomeKit.
 
 ## License
 
-Copyright 2018 Joe Shaw
+Copyright 2018-2022 Joe Shaw
 
 `myq-homekit` is licensed under the MIT License.  See the LICENSE file
 for details.
